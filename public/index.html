@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Aquaponie Enterprise Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0b1220;
+  color: white;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 220px;
+  height: 100vh;
+  background: #111827;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  color: #38bdf8;
+}
+
+.menu {
+  margin-top: 30px;
+}
+
+.menu button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 10px;
+  background: #1f2937;
+  border: none;
+  color: white;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.menu button:hover {
+  background: #38bdf8;
+  color: black;
+}
+
+/* MAIN */
+.main {
+  margin-left: 240px;
+  padding: 20px;
+}
+
+.section {
+  display: none;
+}
+
+.active {
+  display: block;
+}
+
+/* CARDS */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.card {
+  background: #1f2937;
+  padding: 15px;
+  border-radius: 12px;
+  min-height: 120px;
+}
+
+.big {
+  font-size: 28px;
+  color: #38bdf8;
+}
+
+/* CHART */
+canvas {
+  background: #111827;
+  padding: 10px;
+  border-radius: 12px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h2>🌿 Aquaponie</h2>
+
+  <div class="menu">
+    <button onclick="show('dashboard')">Dashboard</button>
+    <button onclick="show('gestion')">Gestion</button>
+    <button onclick="show('support')">Support</button>
+    <button onclick="show('projet')">Projet</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- DASHBOARD -->
+<div id="dashboard" class="section active">
+
+  <h1>📊 Dashboard principal</h1>
+
+  <div class="grid">
+
+    <div class="card">
+      🌡️ Température<br>
+      <span class="big" id="temp">--</span> °C
+    </div>
+
+    <div class="card">
+      💧 PH<br>
+      <span class="big">--</span>
+    </div>
+
+    <div class="card">
+      💡 Luminosité<br>
+      <span class="big">--</span>
+    </div>
+
+    <div class="card">
+      ⚡ Consommation<br>
+      <span class="big">--</span>
+    </div>
+
+    <div class="card">
+      🐟 Poissons<br>
+      <span class="big">OK</span>
+    </div>
+
+    <div class="card">
+      🌿 Plantes<br>
+      <span class="big">OK</span>
+    </div>
+
+  </div>
+
+  <h2 style="margin-top:30px;">📈 Évolution température</h2>
+  <canvas id="chart"></canvas>
+</div>
+
+<!-- GESTION -->
+<div id="gestion" class="section">
+  <h1>📦 Gestion</h1>
+  <div class="card">Matériel</div>
+  <div class="card">Commandes</div>
+  <div class="card">Livraison</div>
+</div>
+
+<!-- SUPPORT -->
+<div id="support" class="section">
+  <h1>📞 Support</h1>
+  <div class="card">FAQ</div>
+  <div class="card">Contact</div>
+</div>
+
+<!-- PROJET -->
+<div id="projet" class="section">
+  <h1>📄 Projet</h1>
+  <div class="card">
+    Système aquaponique automatisé avec capteurs IoT :
+    température, PH, lumière, et monitoring en temps réel.
+  </div>
+</div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+
+/* NAVIGATION */
+function show(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* CHART */
+const ctx = document.getElementById("chart").getContext("2d");
+
+const data = {
+  labels: [],
+  datasets: [{
+    label: "Température",
+    data: [],
+    borderColor: "#38bdf8",
+    tension: 0.3
+  }]
+};
+
+const chart = new Chart(ctx, {
+  type: "line",
+  data: data
+});
+
+/* SOCKET */
+socket.on("temperature", (temp) => {
+  document.getElementById("temp").innerText = temp;
+
+  const time = new Date().toLocaleTimeString();
+
+  data.labels.push(time);
+  data.datasets[0].data.push(temp);
+
+  if (data.labels.length > 20) {
+    data.labels.shift();
+    data.datasets[0].data.shift();
+  }
+
+  chart.update();
+});
+</script>
+
+</body>
+</html>

@@ -17,3 +17,4 @@ port.on("error", (err) => {
 parser.on("data", (data) => {
   console.log("Données reçues :", data);
 });
+
